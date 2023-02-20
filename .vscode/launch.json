@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++ Remote Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerPath": "C:/SysGCC/msp430/bin/msp430-elf-gdb.exe",
+            "miDebuggerServerAddress": "localhost:2000",
+            "program": "${workspaceRoot}/ILI9341_MSP430FR2433_DriverLib_Example.out",
+            "-preLaunchTask": "Start Debug Server",
+            "cwd": ".", 
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "windows": {
+                "MIMode": "gdb"
+            }
+ }        
+    ]
+}

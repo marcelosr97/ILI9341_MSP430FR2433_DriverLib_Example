@@ -1,5 +1,4 @@
-/Debug/
 .launches
 .settings
-.vscode
-/targetConfigs/
+.o
+/build
