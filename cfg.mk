@@ -4,9 +4,9 @@ BUILD_DIR		:= build
 # FILES
 SOURCES 	    := $(shell DIR /B /S *.c)
 OBJECTS		    := $(SOURCES:%.c=%.o)
-WARNING_FILE	:= $(BUILD_DIR)/warnings.log
+WARNING_FILE	:= $(BUILD_DIR)\warnings.log
 # BINARY CONFIGURATION
-OUT = ILI9341_MSP430FR2433_DriverLib_Example.out
+OUT = build\ILI9341_MSP430FR2433_DriverLib_Example.out
 
 # MSP430 GCC CONFIGURATION
 DEVICE = msp430fr2433

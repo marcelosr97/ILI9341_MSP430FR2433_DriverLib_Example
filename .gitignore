@@ -1,4 +1,4 @@
 .launches
 .settings
-.o
+*.o
 /build
