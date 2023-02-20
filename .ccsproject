@@ -13,4 +13,5 @@
 	<createSlaveProjects value=""/>
 	<templateProperties value="id=com.ti.mcu.msp430.driverlib.example_14,products=com.ti.mcu.msp430.driverlib,buildProfile=debug,isHybrid=false"/>
 	<filesToOpen value="main.c"/>
+	<isTargetManual value="true"/>
 </projectOptions>
