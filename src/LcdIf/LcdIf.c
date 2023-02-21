@@ -97,7 +97,7 @@ void LcdIf_Init(void)
 
     // Power Control A
     LcdIf_mSendInstruction(COMMAND, POWER_CONTROL_A);
-    LcdIf_mSendInstruction(DATA, 0x39);
+     LcdIf_mSendInstruction(DATA, 0x39);
     LcdIf_mSendInstruction(DATA, 0x2C);
     LcdIf_mSendInstruction(DATA, 0x00);
     LcdIf_mSendInstruction(DATA, 0x34);

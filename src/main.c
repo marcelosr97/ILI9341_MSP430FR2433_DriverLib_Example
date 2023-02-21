@@ -107,7 +107,7 @@ void SPI_Init(void)
        __enable_interrupt();      // CPU off, enable interrupts
 }
 
-void main(void)
+int main(void)
 {
     // Driver Inicialization
     CS_Init();
@@ -143,14 +143,11 @@ void main(void)
     LcdIf_DrawStr(20, 110, "MSP Driver Library.", GREEN, TRANSP);
     LcdIf_DrawStr(20, 120, "https://github.com/marcelosr97", GREEN, TRANSP);
     __no_operation();
+
+    return 0;
 }
 
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A1_VECTOR
-__interrupt
-#elif defined(__GNUC__)
-__attribute__((interrupt(USCI_A0_VECTOR)))
-#endif
+__attribute__((interrupt(USCI_A1_VECTOR)))
 void USCI_A1_ISR(void)
 {
     // Transmission done
