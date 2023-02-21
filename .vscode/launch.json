@@ -8,20 +8,10 @@
             "name": "C++ Remote Debug",
             "type": "cppdbg",
             "request": "launch",
-            "miDebuggerPath": "C:/SysGCC/msp430/bin/msp430-elf-gdb.exe",
-            "miDebuggerServerAddress": "localhost:2000",
-            "program": "${workspaceRoot}/ILI9341_MSP430FR2433_DriverLib_Example.out",
-            "-preLaunchTask": "Start Debug Server",
-            "cwd": ".", 
-            "linux": {
-                "MIMode": "gdb"
-            },
-            "osx": {
-                "MIMode": "lldb"
-            },
-            "windows": {
-                "MIMode": "gdb"
-            }
- }        
+            "miDebuggerPath": "msp430-elf-gdb.exe",
+            "miDebuggerServerAddress": ": 55000",
+            "program": "${workspaceRoot}/build/ILI9341_MSP430FR2433_DriverLib_Example.out",
+            "cwd": "."
+        }        
     ]
 }

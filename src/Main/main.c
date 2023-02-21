@@ -145,13 +145,7 @@ void main(void)
     __no_operation();
 }
 
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A1_VECTOR
-__interrupt
-#elif defined(__GNUC__)
-__attribute__((interrupt(USCI_A0_VECTOR)))
-#endif
-void USCI_A1_ISR(void)
+__attribute__((interrupt(USCI_A1_VECTOR))) void USCI_A1_ISR(void)
 {
     // Transmission done
     GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
