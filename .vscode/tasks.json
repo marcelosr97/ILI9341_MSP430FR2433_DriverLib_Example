@@ -32,6 +32,31 @@
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "start debug server",
+            "type": "shell",
+            "command": "mspdebug",
+            "args": [
+                "tilib",
+                "gdb"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "start debug server 2",
+            "type": "shell",
+            "command": "C:/ti/msp430-gcc/bin/gdb_agent_console",
+            "args": [
+                "C:/ti/msp430-gcc/msp430.dat",
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
         }
     ]
 }

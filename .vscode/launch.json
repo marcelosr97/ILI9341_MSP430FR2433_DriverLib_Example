@@ -3,15 +3,29 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
+    "configurations": 
+    [
         {
             "name": "C++ Remote Debug",
             "type": "cppdbg",
             "request": "launch",
-            "miDebuggerPath": "msp430-elf-gdb.exe",
-            "miDebuggerServerAddress": ": 55000",
+            "miDebuggerPath": "msp430-elf-gdb",
+            "miDebuggerServerAddress": ":2000",
+            // "debugServerPath": "C:/ti/msp430-gcc/bin/gdb_agent_console",
+            // "debugServerArgs": "C:/ti/msp430-gcc/msp430.dat",
             "program": "${workspaceRoot}/build/ILI9341_MSP430FR2433_DriverLib_Example.out",
             "cwd": "."
-        }        
+        },
+        {
+            "name": "C++ Remote Debug 2",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerPath": "msp430-elf-gdb",
+            "miDebuggerServerAddress": ":55000",
+            // "debugServerPath": "C:/ti/msp430-gcc/bin/gdb_agent_console",
+            // "debugServerArgs": "C:/ti/msp430-gcc/msp430.dat",
+            "program": "${workspaceRoot}/build/ILI9341_MSP430FR2433_DriverLib_Example.out",
+            "cwd": "."
+        }         
     ]
 }

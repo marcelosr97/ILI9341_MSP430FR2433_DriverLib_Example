@@ -22,5 +22,8 @@ clean:
 	@$(RM) $(WARNING_FILE)
 	@$(RM) $(OUT)
 
+flash: $(OUT)
+	mspdebug tilib "prog $(OUT)"
+
 debug: all
-	$(GDB) $(DEVICE).out
+	$(GDB) $(OUT)
