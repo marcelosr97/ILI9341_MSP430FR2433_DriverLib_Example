@@ -15,6 +15,14 @@ Pinout configuration:
 | GND           | GND           |
 | 5V            | VCC           |
 
+For debugging:
+    1. Open CCS
+    2. Import project
+    3. General -> Existing Projects into Workspace
+    4. Select this root directory
+    5. Finish
+    6. Debug -> Debug configurations -> Select ILI9341_MSP430FR2433_DriverLib_Example.launch
+    
 Reference material used for this project:
 
 ILI9341 TFT-Display mit MSP430
