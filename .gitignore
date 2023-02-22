@@ -1,5 +1,8 @@
 /Debug/
 .launches
 .settings
-/targetConfigs/
+/build
+/Debug/
 /Debug__GNU/
+*.obj
+*.d_raw
