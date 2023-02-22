@@ -143,11 +143,18 @@ int main(void)
     LcdIf_DrawStr(20, 110, "MSP Driver Library.", GREEN, TRANSP);
     LcdIf_DrawStr(20, 120, "https://github.com/marcelosr97", GREEN, TRANSP);
     __no_operation();
-    
+
     return 0;
 }
 
-__attribute__((interrupt(USCI_A1_VECTOR))) void USCI_A1_ISR(void)
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCI_A1_VECTOR
+__interrupt void USCI_A1_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR (void)
+#else
+#error Compiler not supported!
+#endif
 {
     // Transmission done
     GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);

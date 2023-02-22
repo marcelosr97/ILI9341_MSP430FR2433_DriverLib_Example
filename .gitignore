@@ -3,4 +3,5 @@
 /build
 /Debug/
 /Debug__GNU/
-*.o
+*.obj
+*.d_raw
