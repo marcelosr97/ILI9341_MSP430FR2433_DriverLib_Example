@@ -18,6 +18,7 @@
 void CS_Init(void);
 void GPIO_Init(void);
 void SPI_Init(void);
+void APP_Test_Features(void);
 
 /******************************************************************************/
 /*                 			GLOBAL FUNCTION DECLARATION      	              */
@@ -113,6 +114,14 @@ int main(void)
     CS_Init();
     GPIO_Init();
     SPI_Init();
+    // Test LcdIf
+    APP_Test_Features();
+    __no_operation();
+    return 0;
+}
+
+void APP_Test_Features(void)
+{
     // Lcd Interface test
     LcdIf_Init();
     LcdIf_FillScreen(WHITE);
@@ -142,9 +151,6 @@ int main(void)
     LcdIf_DrawStr(20, 100, "Development Kit using", GREEN, TRANSP);
     LcdIf_DrawStr(20, 110, "MSP Driver Library.", GREEN, TRANSP);
     LcdIf_DrawStr(20, 120, "https://github.com/marcelosr97", GREEN, TRANSP);
-    __no_operation();
-
-    return 0;
 }
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)

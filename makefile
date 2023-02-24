@@ -1,31 +1,30 @@
 include cfg.mk
 
 test:
-	@echo $(OBJECTS)
-	@echo $(OBJECTS_QUOTED)
+	@echo $(BUILD_DIRS)
+	
 # All target
 all: $(OUT)
 	@echo Build was completed succesfully!
 
 # Out target
 $(OUT): $(OBJECTS)
-	@echo Generating $<...
 	@echo Linking object files...
 	$(CC) $(LFLAGS) -o $(OUT) $(OBJECTS_QUOTED) $(LINKER_FILE) $(LD_LIBS)
 
 # Objects
-%.obj : %.c
+$(BUILD_DIR)/%.obj: %.c | $(BUILD_DIRS)
 	@echo Building source file $<... 
 	$(CC) $(CFLAGS) "$<"
 
-clean: 
-	@echo Cleaning project...
-	@$(RM) $(subst /,\, $(OBJECTS))
-	@$(RM) $(subst /,\, $(RAWS))
-	@$(RM) $(subst /,\, $(MAP))
-	@$(RM) $(subst /,\, $(XML))
-	@$(RM) $(subst /,\, $(WARNING_FILE))
-	@$(RM) $(subst /,\, $(OUT))
+$(BUILD_DIR)/%/:
+	@$(MKDIR) $@
 
-debug: all
-	$(GDB) $(DEVICE).out
+clean: 
+	@echo Cleaning project..
+	@$(RM) $(RAWS)
+	@$(RM) $(OBJECTS)
+	@$(RM) $(MAP)
+	@$(RM) $(XML)
+	@$(RM) $(WARNING_FILE)
+	@$(RM) $(OUT)
