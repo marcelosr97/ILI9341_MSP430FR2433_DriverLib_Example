@@ -156,11 +156,12 @@ int main(void)
     // Test LcdIf
     // Lcd Interface test
     LcdIf_Init();
-    LcdIf_FillScreen(BLACK);
-    APP_Test_Features();
+    //LcdIf_FillScreen(BLACK);
+    //APP_Test_Features();
     while(1)
     {
-        uint8 touchValue = 0U;
+        uint16 x,y;
+        static uint8 touchValue = 0U;
         delayMilliseconds(10);
         if(!GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1) && touchValue)
         {
