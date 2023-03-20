@@ -11,7 +11,13 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "__MSP430_HAS_PORT1_R__",
+                "__MSP430_HAS_PORT2_R__",
+                "__MSP430_HAS_CS__",
+                "__TI_COMPILER_VERSION__",
+                "__MSP430_HAS_EUSCI_Ax__",
+                "__MSP430FR2433__"
             ],
             "windowsSdkVersion": "10.0.19041.0",
             "compilerPath": "cl.exe",

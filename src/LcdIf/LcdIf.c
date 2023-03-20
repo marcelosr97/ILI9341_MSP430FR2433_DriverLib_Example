@@ -18,6 +18,7 @@ static void LcdIf_mSetRectangle(uint16 t_x1, uint16 t_y1, uint16 t_x2,
                                 uint16 t_y2);
 static void LcdIf_mSetCursor(uint16 t_x, uint16 t_y);
 static void LcdIf_mSetColor(uint16 t_color);
+static uint16 LcdIf_mRequestCoordinate(uint8 t_value);
 
 /******************************************************************************/
 /*                     STATIC FUNCTIONS DEFINITION                            */
@@ -45,7 +46,9 @@ static void LcdIf_mSendInstruction(uint8 t_type, uint8 t_value)
         GPIO_setOutputHighOnPin(LCD_DC_PORT, LCD_DC_PIN); // Data
     }
 
-    GPIO_setOutputLowOnPin(LCD_CS_PORT, LCD_CS_PIN);  // Write data condition
+    // Write data condition for LCD
+    GPIO_setOutputLowOnPin(LCD_CS_PORT, LCD_CS_PIN);
+    GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN); 
     EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, t_value); // Transmit
 }
 
@@ -86,18 +89,26 @@ static void LcdIf_mSetColor(uint16 t_color)
     LcdIf_mSendInstruction(DATA, t_color & 0xFF);
 }
 
+static uint16 LcdIf_mRequestCoordinate(uint8 t_value)
+{
+    EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, t_value); // Transmit
+    return 0;
+}
+
 /******************************************************************************/
 /*                      GLOBAL FUNCTIONS DEFINITIONS                          */
 /******************************************************************************/
 
 void LcdIf_Init(void)
 {
+    // Enable USCI_A1 TX interrupt
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     // Hardware Reset
     LcdIf_mHardwareReset();
 
     // Power Control A
     LcdIf_mSendInstruction(COMMAND, POWER_CONTROL_A);
-     LcdIf_mSendInstruction(DATA, 0x39);
+    LcdIf_mSendInstruction(DATA, 0x39);
     LcdIf_mSendInstruction(DATA, 0x2C);
     LcdIf_mSendInstruction(DATA, 0x00);
     LcdIf_mSendInstruction(DATA, 0x34);
@@ -220,6 +231,9 @@ void LcdIf_Init(void)
 
     // Memory write
     LcdIf_mSendInstruction(COMMAND, MEMORY_WRITE);
+
+    // Enable USCI_A1 TX interrupt
+    EUSCI_A_SPI_disableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 }
 
 void LcdIf_FillScreen(uint16 t_color)
@@ -442,4 +456,29 @@ LcdIf_ReturnType LcdIf_DrawStr(uint16 t_x, uint16 t_y, const uint8 *t_ptrStr,
         }
     }
     return ret;
+}
+
+uint8 rxDataRaw[7];
+LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
+{
+    uint16 x = 0;
+    uint16 y = 0;
+    // Transmission CS condition
+    GPIO_setOutputLowOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
+    GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
+    // Enable  USCI_A1 TX interrupt
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+    (void) LcdIf_mRequestCoordinate(READ_X);
+    (void) LcdIf_mRequestCoordinate(READ_X);
+    (void) LcdIf_mRequestCoordinate(READ_X);
+    delayMicroseconds(20);
+    // Transmission CS condition done
+    GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
+    // Disable RX interrupt
+    EUSCI_A_SPI_disableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+
+    *t_ptrX = x;
+    *t_ptrY = y;
+
+    return LCDIF_OK;
 }

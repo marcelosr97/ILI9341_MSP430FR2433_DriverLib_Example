@@ -18,6 +18,7 @@
 void CS_Init(void);
 void GPIO_Init(void);
 void SPI_Init(void);
+void UART_Init(void);
 void APP_Test_Features(void);
 
 /******************************************************************************/
@@ -38,31 +39,26 @@ void CS_Init(void)
     //For demonstration purpose, change DCO clock freq to 16MHz
     CS_initFLLSettle(16000, 488);
 
-    //Set MCLK = DCO
+    //Set MCLK = DCO (16 Mhz)
     CS_initClockSignal(CS_MCLK, CS_DCOCLKDIV_SELECT, CS_CLOCK_DIVIDER_1);
-
-    //Set SMCLK = DCO/2
-    CS_initClockSignal(CS_SMCLK, CS_DCOCLKDIV_SELECT, CS_CLOCK_DIVIDER_1);
 
 }
 
 void GPIO_Init(void)
 {
+    //LCD
     //Set CS Pin as output
     GPIO_setAsOutputPin(LCD_CS_PORT, LCD_CS_PIN);
-
-    //Set CS Pin as low
-    GPIO_setOutputLowOnPin(LCD_CS_PORT, LCD_CS_PIN);
+    // Set CS Pin as high
+    GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
 
     //Set RST Pin as output
     GPIO_setAsOutputPin(LCD_RST_PORT, LCD_RST_PIN);
-
     //Set RST Pin as low
     GPIO_setOutputLowOnPin(LCD_RST_PORT, LCD_RST_PIN);
 
     //Set DC Pin as output
     GPIO_setAsOutputPin(LCD_DC_PORT, LCD_DC_PIN);
-
     //Set DC Pin as low
     GPIO_setOutputLowOnPin(LCD_DC_PORT, LCD_DC_PIN);
 
@@ -71,10 +67,30 @@ void GPIO_Init(void)
     GPIO_setAsPeripheralModuleFunctionInputPin(LCD_MISO_PORT, LCD_MISO_PIN, GPIO_PRIMARY_MODULE_FUNCTION);
     GPIO_setAsPeripheralModuleFunctionInputPin(LCD_SCK_PORT, LCD_SCK_PIN, GPIO_PRIMARY_MODULE_FUNCTION);
 
-    /*
-     * Disable the GPIO power-on default high-impedance mode to activate
-     * previously configured port settings
-     */
+    //TOUCH
+    //Set CS pin as output
+    GPIO_setAsOutputPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
+    //Set CS Pin as low
+    GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
+
+    //Enable IRQ internal resistance as pull-Up resistance
+    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_S1, GPIO_PIN_S1);
+
+    //Configure UART pins
+    GPIO_setAsPeripheralModuleFunctionInputPin(
+        GPIO_PORT_UCA0TXD,
+        GPIO_PIN_UCA0TXD,
+        GPIO_FUNCTION_UCA0TXD
+    );
+    GPIO_setAsPeripheralModuleFunctionInputPin(
+        GPIO_PORT_UCA0RXD,
+        GPIO_PIN_UCA0RXD,
+        GPIO_FUNCTION_UCA0RXD
+    );
+
+    //Disable the GPIO power-on default high-impedance mode to activate
+    //previously configured port settings
+    
     PMM_unlockLPM5();
 }
 
@@ -84,7 +100,7 @@ void SPI_Init(void)
        EUSCI_A_SPI_initMasterParam param = {0};
        param.selectClockSource = EUSCI_A_SPI_CLOCKSOURCE_SMCLK;
        param.clockSourceFrequency = CS_getSMCLK();
-       param.desiredSpiClock = CS_getSMCLK();
+       param.desiredSpiClock = CS_getSMCLK()/8;
        param.msbFirst = EUSCI_A_SPI_MSB_FIRST;
        param.clockPhase = EUSCI_A_SPI_PHASE_DATA_CHANGED_ONFIRST_CAPTURED_ON_NEXT;
        param.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_HIGH;
@@ -99,13 +115,35 @@ void SPI_Init(void)
              EUSCI_A_SPI_TRANSMIT_INTERRUPT
              );
 
-       // Enable USCI_A1 TX interrupt
-       EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE,
+       //Clear receive interrupt flag
+       EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE,
              EUSCI_A_SPI_TRANSMIT_INTERRUPT
              );
 
-
        __enable_interrupt();      // CPU off, enable interrupts
+}
+
+void UART_Init(void)
+{
+    //Configure UART
+    //SMCLK = 16MHz, Baudrate = 115200
+    //UCBRx = 8, UCBRFx = 0, UCBRSx = 0xD6, UCOS16 = 0
+    EUSCI_A_UART_initParam param = {0};
+    param.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
+    param.clockPrescalar = 8;
+    param.firstModReg = 10;
+    param.secondModReg = 0xF7;
+    param.parity = EUSCI_A_UART_NO_PARITY;
+    param.msborLsbFirst = EUSCI_A_UART_LSB_FIRST;
+    param.numberofStopBits = EUSCI_A_UART_ONE_STOP_BIT;
+    param.uartMode = EUSCI_A_UART_MODE;
+    param.overSampling = EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION;
+
+     if (STATUS_FAIL == EUSCI_A_UART_init(EUSCI_A0_BASE, &param)) {
+        return;
+    }
+
+    EUSCI_A_UART_enable(EUSCI_A0_BASE);
 }
 
 int main(void)
@@ -114,17 +152,27 @@ int main(void)
     CS_Init();
     GPIO_Init();
     SPI_Init();
+    UART_Init();
     // Test LcdIf
+    // Lcd Interface test
+    LcdIf_Init();
+    LcdIf_FillScreen(BLACK);
     APP_Test_Features();
-    __no_operation();
+    while(1)
+    {
+        uint8 touchValue = 0U;
+        delayMilliseconds(10);
+        if(!GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1) && touchValue)
+        {
+            LcdIf_ReadXY(&x,&y);
+        }
+        touchValue = GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1);
+    }
     return 0;
 }
 
 void APP_Test_Features(void)
 {
-    // Lcd Interface test
-    LcdIf_Init();
-    LcdIf_FillScreen(WHITE);
     // Test rectangles
     LcdIf_DrawRectangle(20, 100, 200, 300, BLACK);
     LcdIf_DrawRectangle(40, 60, 90, 200, BLUE);
@@ -162,10 +210,23 @@ void __attribute__ ((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    // Transmission done
+    if (EUSCI_A_SPI_getInterruptStatus(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT))
+    {
+    // Transmission LCD done
     GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
     //Clear transmit interrupt flag
-    EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE,
-          EUSCI_A_SPI_TRANSMIT_INTERRUPT
-          );
+    EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+    }
+    else if(EUSCI_A_SPI_getInterruptStatus(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT))
+    {
+        uint8 data;
+        data = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
+        EUSCI_A_UART_transmitData(EUSCI_A0_BASE, data);
+        //Clear received interrupt flag
+        EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+    }
+    else
+    {
+        /* Default */
+    }
 }

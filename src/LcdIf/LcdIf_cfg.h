@@ -25,6 +25,7 @@
 /*                       BOARD PIN CONFIGURATION                              */
 /******************************************************************************/
 
+/* LCD */
 /* Chip Select (CS) to P2.1*/
 #define LCD_CS_PORT           GPIO_PORT_P2 
 #define LCD_CS_PIN            GPIO_PIN1
@@ -43,5 +44,14 @@
 /* Signal Clock (SCK) to P2.4*/
 #define LCD_SCK_PORT          GPIO_PORT_P2
 #define LCD_SCK_PIN           GPIO_PIN4
+
+/* TOUCH */
+/* Chip Select (CS) to P2.0*/
+#define TOUCH_CS_PORT         GPIO_PORT_P2 
+#define TOUCH_CS_PIN          GPIO_PIN0
+
+/* Interrupt (IRQ) to P2.4 */
+#define TOUCH_IRQ_PORT        GPIO_PORT_P1
+#define TOUCH_IRQ_PIN         GPIO_PIN6
 
 #endif /* LCDIF_CFG_H_ */

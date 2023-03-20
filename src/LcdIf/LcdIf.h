@@ -48,6 +48,10 @@
 #define COLUMN_ADDRESS_SET 0x2AU
 #define PAGE_ADDRESS_SET 0x2BU
 
+/* TOUCH */
+#define READ_X 0xD1
+#define READ_Y 0x91
+
 /* COLORS RGB565 */
 #define WHITE 0xFFFFU
 #define BLACK 0x0000U
@@ -168,5 +172,7 @@ LcdIf_ReturnType LcdIf_DrawChar(uint16 t_x, uint16 t_y, const uint8 *t_ptrStr,
 
 LcdIf_ReturnType LcdIf_DrawStr(uint16 x, uint16 y, const uint8 *t_ptrStr, uint16 t_fColor,
                                uint16 t_bColor);
+
+LcdIf_ReturnType LcdIf_ReadXY(uint16 *t_ptrX, uint16 *t_ptrY);
 
 #endif /* LCD_H_ */

@@ -20,6 +20,10 @@ $(BUILD_DIR)/%.obj: %.c | $(BUILD_DIRS)
 $(BUILD_DIR)/%/:
 	@$(MKDIR) $@
 
+# Flash
+flash: $(OUT)
+	mspdebug tilib "prog .\$(OUT)"
+
 clean: 
 	@echo Cleaning project..
 	@$(RM) $(RAWS)
