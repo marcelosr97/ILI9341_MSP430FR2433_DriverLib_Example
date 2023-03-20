@@ -127,7 +127,7 @@ void UART_Init(void)
 {
     //Configure UART
     //SMCLK = 16MHz, Baudrate = 115200
-    //UCBRx = 8, UCBRFx = 0, UCBRSx = 0xD6, UCOS16 = 0
+    //UCBRx = 8, UCBRFx = 10, UCBRSx = 0xF7, UCOS16 = 1
     EUSCI_A_UART_initParam param = {0};
     param.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
     param.clockPrescalar = 8;
