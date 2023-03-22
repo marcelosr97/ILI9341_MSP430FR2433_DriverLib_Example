@@ -103,7 +103,7 @@ void SPI_Init(void)
        param.desiredSpiClock = CS_getSMCLK()/8;
        param.msbFirst = EUSCI_A_SPI_MSB_FIRST;
        param.clockPhase = EUSCI_A_SPI_PHASE_DATA_CHANGED_ONFIRST_CAPTURED_ON_NEXT;
-       param.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_HIGH;
+       param.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
        param.spiMode = EUSCI_A_SPI_3PIN;
        EUSCI_A_SPI_initMaster(EUSCI_A1_BASE, &param);
 
@@ -139,7 +139,7 @@ void UART_Init(void)
     param.uartMode = EUSCI_A_UART_MODE;
     param.overSampling = EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION;
 
-     if (STATUS_FAIL == EUSCI_A_UART_init(EUSCI_A0_BASE, &param)) {
+    if (STATUS_FAIL == EUSCI_A_UART_init(EUSCI_A0_BASE, &param)) {
         return;
     }
 
@@ -156,7 +156,7 @@ int main(void)
     // Test LcdIf
     // Lcd Interface test
     LcdIf_Init();
-    //LcdIf_FillScreen(BLACK);
+    LcdIf_FillScreen(BLACK);
     //APP_Test_Features();
     while(1)
     {
@@ -200,34 +200,4 @@ void APP_Test_Features(void)
     LcdIf_DrawStr(20, 100, "Development Kit using", GREEN, TRANSP);
     LcdIf_DrawStr(20, 110, "MSP Driver Library.", GREEN, TRANSP);
     LcdIf_DrawStr(20, 120, "https://github.com/marcelosr97", GREEN, TRANSP);
-}
-
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A1_VECTOR
-__interrupt void USCI_A1_ISR(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    if (EUSCI_A_SPI_getInterruptStatus(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT))
-    {
-    // Transmission LCD done
-    GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
-    //Clear transmit interrupt flag
-    EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
-    }
-    else if(EUSCI_A_SPI_getInterruptStatus(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT))
-    {
-        uint8 data;
-        data = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
-        EUSCI_A_UART_transmitData(EUSCI_A0_BASE, data);
-        //Clear received interrupt flag
-        EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
-    }
-    else
-    {
-        /* Default */
-    }
 }

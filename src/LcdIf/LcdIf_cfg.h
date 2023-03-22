@@ -51,7 +51,7 @@
 #define TOUCH_CS_PIN          GPIO_PIN0
 
 /* Interrupt (IRQ) to P2.4 */
-#define TOUCH_IRQ_PORT        GPIO_PORT_P1
-#define TOUCH_IRQ_PIN         GPIO_PIN6
+#define TOUCH_IRQ_PORT        GPIO_PORT_P2
+#define TOUCH_IRQ_PIN         GPIO_PIN7
 
 #endif /* LCDIF_CFG_H_ */

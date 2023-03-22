@@ -10,7 +10,7 @@
 
 #include "typedef.h"
 
-void delayMilliseconds(uint32 m_sec);
-void delayMicroseconds(uint32 m_sec);
+void delayMilliseconds(uint32 t_milliseconds);
+void delayMicroseconds(uint32 t_microseconds);
 
 #endif /*DELAY_H_*/

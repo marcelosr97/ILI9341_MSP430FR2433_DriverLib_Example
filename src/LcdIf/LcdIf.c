@@ -18,7 +18,7 @@ static void LcdIf_mSetRectangle(uint16 t_x1, uint16 t_y1, uint16 t_x2,
                                 uint16 t_y2);
 static void LcdIf_mSetCursor(uint16 t_x, uint16 t_y);
 static void LcdIf_mSetColor(uint16 t_color);
-static uint16 LcdIf_mRequestCoordinate(uint8 t_value);
+static uint16 LcdIf_mReadCoordinate(uint8 t_value);
 
 /******************************************************************************/
 /*                     STATIC FUNCTIONS DEFINITION                            */
@@ -89,10 +89,26 @@ static void LcdIf_mSetColor(uint16 t_color)
     LcdIf_mSendInstruction(DATA, t_color & 0xFF);
 }
 
-static uint16 LcdIf_mRequestCoordinate(uint8 t_value)
+static uint16 LcdIf_mReadCoordinate(uint8 t_coordinate)
 {
-    EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, t_value); // Transmit
-    return 0;
+    uint16 rxData = 0;
+    // Request coordinate
+    EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, t_coordinate);
+    // Wait for BUSY time
+    delayMicroseconds(5);
+    while(!(UCA1IFG&UCRXIFG));
+    (void) EUSCI_A_SPI_receiveData(EUSCI_A1_BASE); // Read buffer to clear it
+    // Send 0x00U to keep SPI CLK active
+    EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, 0x00U);
+    EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, 0x00U);
+    while(!(UCA1IFG&UCRXIFG));
+    rxData = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE) << 8;
+    while(!(UCA1IFG&UCRXIFG));
+    rxData |= EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
+    // Adjust data to 12 bits
+    rxData >>= 3;   // Shift 3 bits instead of 4 because XPT2046 send the first
+                    // byte after 1 CLK cycle
+    return rxData;
 }
 
 /******************************************************************************/
@@ -232,14 +248,18 @@ void LcdIf_Init(void)
     // Memory write
     LcdIf_mSendInstruction(COMMAND, MEMORY_WRITE);
 
-    // Enable USCI_A1 TX interrupt
+    // Disable USCI_A1 TX interrupt
     EUSCI_A_SPI_disableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 }
 
 void LcdIf_FillScreen(uint16 t_color)
 {
+    // Enable USCI_A1 TX interrupt
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     // Draw display-size rectangle
     LcdIf_DrawRectangle(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1, t_color);
+    // Disable USCI_A1 TX interrupt
+    EUSCI_A_SPI_disableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 }
 
 LcdIf_ReturnType LcdIf_DrawRectangle(uint16 t_x1, uint16 t_y1, uint16 t_x2, uint16 t_y2,
@@ -458,27 +478,69 @@ LcdIf_ReturnType LcdIf_DrawStr(uint16 t_x, uint16 t_y, const uint8 *t_ptrStr,
     return ret;
 }
 
-uint8 rxDataRaw[7];
 LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
 {
+    LcdIf_ReturnType ret = LCDIF_OK;
+    uint16 dataX[3];
+    uint16 dataY[3];
     uint16 x = 0;
     uint16 y = 0;
-    // Transmission CS condition
+    // CS condition transmission
     GPIO_setOutputLowOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
     GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
-    // Enable  USCI_A1 TX interrupt
-    EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
-    (void) LcdIf_mRequestCoordinate(READ_X);
-    (void) LcdIf_mRequestCoordinate(READ_X);
-    (void) LcdIf_mRequestCoordinate(READ_X);
-    delayMicroseconds(20);
-    // Transmission CS condition done
-    GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
-    // Disable RX interrupt
-    EUSCI_A_SPI_disableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+    
+    // Read X axis three times
+    dataX[0] = LcdIf_mReadCoordinate(READ_X);
+    dataX[1] = LcdIf_mReadCoordinate(READ_X);
+    dataX[2] = LcdIf_mReadCoordinate(READ_X);
 
-    *t_ptrX = x;
-    *t_ptrY = y;
+    // Read Y axis three times
+    dataY[0] = LcdIf_mReadCoordinate(READ_Y);
+    dataY[1] = LcdIf_mReadCoordinate(READ_Y);
+    dataY[2] = LcdIf_mReadCoordinate(READ_Y);
+
+    // Transmision finished
+    GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
+
+    // Check overflow
+    if((dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE)
+        || (dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE) 
+        || (dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE))
+    {
+        ret = LCDIF_OVERFLOW;
+    }
+    else
+    {
+        *t_ptrX = (dataX[0] + dataX[1] + dataX[2])/3;
+        *t_ptrY = (dataY[0] + dataY[1] + dataY[2])/3;
+    }
+
+    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX >> 8);
+    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX);
+    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY >> 8);
+    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY);
 
     return LCDIF_OK;
+}
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCI_A1_VECTOR
+__interrupt void USCI_A1_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    if (EUSCI_A_SPI_getInterruptStatus(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT))
+    {
+        // Transmission LCD done
+        GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
+        // Clear transmit interrupt flag
+        EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+    }
+    else
+    {
+        /* Default */
+    }
 }

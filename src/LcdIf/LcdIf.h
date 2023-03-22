@@ -70,6 +70,9 @@
 #define GRAY 0X8430U
 #define TRANSP 0xF81FU
 
+/* 12 BITS ADC CONVERTER MAX VALUE */
+#define ADC_CONVERTER_MAX_VALUE 0x0FFFU
+
 /******************************************************************************/
 /*                          DATA TYPES                                        */
 /******************************************************************************/
