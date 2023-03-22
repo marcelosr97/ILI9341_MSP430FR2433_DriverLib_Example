@@ -92,6 +92,8 @@ static void LcdIf_mSetColor(uint16 t_color)
 static uint16 LcdIf_mReadCoordinate(uint8 t_coordinate)
 {
     uint16 rxData = 0;
+    uint8 msbByte = 0;
+    uint8 lsbByte = 0;
     // Request coordinate
     EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, t_coordinate);
     // Wait for BUSY time
@@ -102,12 +104,19 @@ static uint16 LcdIf_mReadCoordinate(uint8 t_coordinate)
     EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, 0x00U);
     EUSCI_A_SPI_transmitData(EUSCI_A1_BASE, 0x00U);
     while(!(UCA1IFG&UCRXIFG));
-    rxData = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE) << 8;
+    msbByte = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
     while(!(UCA1IFG&UCRXIFG));
-    rxData |= EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
+    lsbByte = EUSCI_A_SPI_receiveData(EUSCI_A1_BASE);
     // Adjust data to 12 bits
-    rxData >>= 3;   // Shift 3 bits instead of 4 because XPT2046 send the first
-                    // byte after 1 CLK cycle
+    rxData = (((uint16)msbByte << 8) | lsbByte) >> 3;   // Shift 3 bits instead of 4 because XPT2046 send the first
+                                                // byte after 1 CLK cycle
+                
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, msbByte);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, lsbByte);
+
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, rxData >> 8);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, rxData);
+
     return rxData;
 }
 
@@ -515,10 +524,10 @@ LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
         *t_ptrY = (dataY[0] + dataY[1] + dataY[2])/3;
     }
 
-    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX >> 8);
-    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX);
-    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY >> 8);
-    EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX >> 8);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY >> 8);
+    // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY);
 
     return LCDIF_OK;
 }

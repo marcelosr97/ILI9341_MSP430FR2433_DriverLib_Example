@@ -102,7 +102,7 @@ void SPI_Init(void)
        param.clockSourceFrequency = CS_getSMCLK();
        param.desiredSpiClock = CS_getSMCLK()/8;
        param.msbFirst = EUSCI_A_SPI_MSB_FIRST;
-       param.clockPhase = EUSCI_A_SPI_PHASE_DATA_CHANGED_ONFIRST_CAPTURED_ON_NEXT;
+       param.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
        param.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
        param.spiMode = EUSCI_A_SPI_3PIN;
        EUSCI_A_SPI_initMaster(EUSCI_A1_BASE, &param);
