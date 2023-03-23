@@ -49,8 +49,9 @@
 #define PAGE_ADDRESS_SET 0x2BU
 
 /* TOUCH */
-#define READ_X 0xD1
-#define READ_Y 0x91
+#define READ_X_REF_OFF 0xD1 // PD1 = 0, PD0 = 1 Reference is on and ADC is off
+#define READ_Y_REF_OFF 0x91 // PD1 = 0, PD0 = 1 Reference is on and ADC is off
+#define READ_Y_PWR_DOWN 0x90 // PD1 = 0, PD0 = 1 Power-Down between conversions
 
 /* COLORS RGB565 */
 #define WHITE 0xFFFFU

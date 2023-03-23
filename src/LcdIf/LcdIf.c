@@ -499,14 +499,14 @@ LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
     GPIO_setOutputHighOnPin(LCD_CS_PORT, LCD_CS_PIN);
     
     // Read X axis three times
-    dataX[0] = LcdIf_mReadCoordinate(READ_X);
-    dataX[1] = LcdIf_mReadCoordinate(READ_X);
-    dataX[2] = LcdIf_mReadCoordinate(READ_X);
+    dataX[0] = LcdIf_mReadCoordinate(READ_X_REF_OFF);
+    dataX[1] = LcdIf_mReadCoordinate(READ_X_REF_OFF);
+    dataX[2] = LcdIf_mReadCoordinate(READ_X_REF_OFF);
 
     // Read Y axis three times
-    dataY[0] = LcdIf_mReadCoordinate(READ_Y);
-    dataY[1] = LcdIf_mReadCoordinate(READ_Y);
-    dataY[2] = LcdIf_mReadCoordinate(READ_Y);
+    dataY[0] = LcdIf_mReadCoordinate(READ_Y_REF_OFF);
+    dataY[1] = LcdIf_mReadCoordinate(READ_Y_REF_OFF);
+    dataY[2] = LcdIf_mReadCoordinate(READ_Y_PWR_DOWN);
 
     // Transmision finished
     GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);

@@ -74,7 +74,7 @@ void GPIO_Init(void)
     GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
 
     //Enable IRQ internal resistance as pull-Up resistance
-    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_S1, GPIO_PIN_S1);
+    GPIO_setAsInputPinWithPullUpResistor(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN);
 
     //Configure UART pins
     GPIO_setAsPeripheralModuleFunctionInputPin(
@@ -163,11 +163,11 @@ int main(void)
         uint16 x,y;
         static uint8 touchValue = 0U;
         delayMilliseconds(10);
-        if(!GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1) && touchValue)
+        if(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN) && touchValue)
         {
             LcdIf_ReadXY(&x,&y);
         }
-        touchValue = GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1);
+        touchValue = GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN);
     }
     return 0;
 }
