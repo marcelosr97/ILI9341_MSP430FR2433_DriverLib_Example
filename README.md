@@ -15,6 +15,14 @@ Pinout configuration:
 | GND           | GND           |
 | 5V            | VCC           |
 
+| MSP430FR2433  | XPT2046       |
+| ------------- | ------------- |
+| P2.7          | T_IRQ         |
+| P2.5          | T_DO          |
+| P2.6          | T_DIN         |
+| P2.0          | T_CS          |
+| P2.4          | T_CLK         |
+
 For debugging:
     1. Open CCS
     2. Import project
