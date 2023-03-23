@@ -161,13 +161,12 @@ int main(void)
     while(1)
     {
         uint16 x,y;
-        static uint8 touchValue = 0U;
         delayMilliseconds(10);
-        if(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN) && touchValue)
+        if(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN))
         {
-            LcdIf_ReadXY(&x,&y);
+            (void) LcdIf_ReadXY(&x,&y);
+            (void) LcdIf_DrawPoint(x, y, WHITE);
         }
-        touchValue = GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN);
     }
     return 0;
 }

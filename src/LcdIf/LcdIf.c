@@ -512,16 +512,18 @@ LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
     GPIO_setOutputHighOnPin(TOUCH_CS_PORT, TOUCH_CS_PIN);
 
     // Check overflow
-    if((dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE)
-        || (dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE) 
-        || (dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataX[0] > ADC_CONVERTER_MAX_VALUE))
+    if((dataX[0] > ADC_CONVERTER_MAX_VALUE) || (dataY[0] > ADC_CONVERTER_MAX_VALUE)
+        || (dataX[1] > ADC_CONVERTER_MAX_VALUE) || (dataY[1] > ADC_CONVERTER_MAX_VALUE) 
+        || (dataX[2] > ADC_CONVERTER_MAX_VALUE) || (dataY[2] > ADC_CONVERTER_MAX_VALUE))
     {
         ret = LCDIF_OVERFLOW;
     }
     else
     {
-        *t_ptrX = (dataX[0] + dataX[1] + dataX[2])/3;
-        *t_ptrY = (dataY[0] + dataY[1] + dataY[2])/3;
+        *t_ptrX = (((uint32)(dataX[0] + dataX[1] + dataX[2])/3)
+            *(LCD_WIDTH-1))/ADC_CONVERTER_MAX_VALUE;
+        *t_ptrY = (LCD_HEIGHT-1) - (((uint32)(dataY[0] + dataY[1] + dataY[2])/3)
+            *(LCD_HEIGHT-1))/ADC_CONVERTER_MAX_VALUE;
     }
 
     // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX >> 8);
