@@ -89,6 +89,16 @@ typedef enum
     LCDIF_OVERFLOW
 } LcdIf_ReturnType;
 
+typedef struct {
+    sint32  An;     /* A = An/Divider */
+    sint32  Bn;     /* B = Bn/Divider */
+    sint32  Cn;     /* C = Cn/Divider */
+    sint32  Dn;     /* D = Dn/Divider */
+    sint32  En;     /* E = En/Divider */
+    sint32  Fn;     /* F = Fn/Divider */
+    sint32  Divider;
+} LcdIf_CalibMatrix;
+
 /******************************************************************************/
 /*                 			GLOBAL FUNCTION DEFINITIONS      	              */
 /******************************************************************************/
@@ -178,5 +188,13 @@ LcdIf_ReturnType LcdIf_DrawStr(uint16 x, uint16 y, const uint8 *t_ptrStr, uint16
                                uint16 t_bColor);
 
 LcdIf_ReturnType LcdIf_ReadXY(uint16 *t_ptrX, uint16 *t_ptrY);
+
+LcdIf_ReturnType LcdIf_CalibrationRoutine(LcdIf_CalibMatrix* t_ptrMatrix);
+
+LcdIf_ReturnType LcdIf_setCalibrationMatrix(sint32* t_ptrX, sint32* t_ptrY, sint32* t_ptrX_raw,
+    sint32* t_ptrY_raw, LcdIf_CalibMatrix* t_ptrMatrix);
+
+LcdIf_ReturnType LcdIf_getDisplayPoint(sint32* t_ptrX, sint32* t_ptrY, 
+    sint32* t_ptrX_raw, sint32* t_ptrY_raw, LcdIf_CalibMatrix* t_ptrMatrix);
 
 #endif /* LCD_H_ */

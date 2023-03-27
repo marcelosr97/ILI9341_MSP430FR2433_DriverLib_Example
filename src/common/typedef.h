@@ -16,5 +16,6 @@ typedef unsigned short		    uint16;
 typedef signed long		        sint32;
 typedef unsigned long		      uint32;
 typedef unsigned long long		uint64;
+typedef signed long long      sint64;
 
 #endif /*TYPEDEF_H_*/

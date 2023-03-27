@@ -362,7 +362,7 @@ LcdIf_ReturnType LcdIf_DrawLine(uint16 t_x1, uint16 t_y1, uint16 t_x2, uint16 t_
         // Error calculation
         e = 2 * ay - ax;
 
-        for (d = 1; d <= ax; d++)
+        for (d = 0; d <= ax; d++)
         {
             LcdIf_DrawPoint(x, y, t_color);
             if (e >= 0)
@@ -487,6 +487,15 @@ LcdIf_ReturnType LcdIf_DrawStr(uint16 t_x, uint16 t_y, const uint8 *t_ptrStr,
     return ret;
 }
 
+LcdIf_ReturnType LcdIf_DrawCross(uint16 t_x, uint16 t_y, uint8 t_length,
+    uint16 t_color)
+{
+    LcdIf_ReturnType ret = LCDIF_OK;
+    ret = LcdIf_DrawLine(t_x-t_length, t_y, t_x+t_length, t_y, t_color);
+    ret = LcdIf_DrawLine(t_x, t_y-t_length, t_x, t_y+t_length, t_color);
+    return ret;
+}
+
 LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
 {
     LcdIf_ReturnType ret = LCDIF_OK;
@@ -520,10 +529,8 @@ LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
     }
     else
     {
-        *t_ptrX = (((uint32)(dataX[0] + dataX[1] + dataX[2])/3)
-            *(LCD_WIDTH-1))/ADC_CONVERTER_MAX_VALUE;
-        *t_ptrY = (LCD_HEIGHT-1) - (((uint32)(dataY[0] + dataY[1] + dataY[2])/3)
-            *(LCD_HEIGHT-1))/ADC_CONVERTER_MAX_VALUE;
+        *t_ptrX = ((dataX[0] + dataX[1] + dataX[2])/3) >> 2;
+        *t_ptrY = ((dataY[0] + dataY[1] + dataY[2])/3) >> 2;
     }
 
     // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrX >> 8);
@@ -531,8 +538,109 @@ LcdIf_ReturnType LcdIf_ReadXY(uint16* t_ptrX, uint16* t_ptrY)
     // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY >> 8);
     // EUSCI_A_UART_transmitData(EUSCI_A0_BASE, *t_ptrY);
 
-    return LCDIF_OK;
+    return ret;
 }
+
+LcdIf_ReturnType LcdIf_CalibrationRoutine(LcdIf_CalibMatrix* t_ptrMatrix)
+{
+    uint16 x_raw;
+    uint16 y_raw;
+    sint32 xSamples[3];
+    sint32 ySamples[3];
+    LcdIf_CalibMatrix calibMatrix;
+
+    LcdIf_ReturnType ret = LCDIF_OK;
+
+    (void) LcdIf_setCalibrationMatrix(xPerfectSamples, yPerfectSamples, 
+        xPerfectSamples, yPerfectSamples, &calibMatrix);
+
+    ret = LcdIf_DrawCross(xSamplesCalib[0], ySamplesCalib[0], 4, RED);
+    while(GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+    (void) LcdIf_ReadXY(&x_raw, &y_raw);
+    xSamples[0] = x_raw;
+    ySamples[0] = y_raw;
+    ret = LcdIf_DrawCross(xSamplesCalib[0], ySamplesCalib[0], 4, WHITE);
+    while(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+
+    ret = LcdIf_DrawCross(xSamplesCalib[1], ySamplesCalib[1], 4, RED);
+    while(GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+    (void) LcdIf_ReadXY(&x_raw, &y_raw);
+    xSamples[1] = x_raw;
+    ySamples[1] = y_raw;
+    ret = LcdIf_DrawCross(xSamplesCalib[1], ySamplesCalib[1], 4, WHITE);
+    while(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+
+    ret = LcdIf_DrawCross(xSamplesCalib[2], ySamplesCalib[2], 4, RED);
+    while(GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+    (void) LcdIf_ReadXY(&x_raw, &y_raw);
+    xSamples[2] = x_raw;
+    ySamples[2] = y_raw;
+    ret = LcdIf_DrawCross(xSamplesCalib[2], ySamplesCalib[2], 4, WHITE);
+    while(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN));
+
+    (void) LcdIf_setCalibrationMatrix(xSamplesCalib, ySamplesCalib,
+        xSamples, ySamples, t_ptrMatrix);
+}
+
+LcdIf_ReturnType LcdIf_setCalibrationMatrix(sint32* t_ptrX, sint32* t_ptrY, sint32* t_ptrX_raw,
+    sint32* t_ptrY_raw, LcdIf_CalibMatrix* t_ptrMatrix)
+{
+
+    LcdIf_ReturnType ret = LCDIF_OK;
+    t_ptrMatrix->Divider = ((t_ptrX_raw[0] - t_ptrX_raw[2]) * (t_ptrY_raw[1] - t_ptrY_raw[2])) - 
+                         ((t_ptrX_raw[1] - t_ptrX_raw[2]) * (t_ptrY_raw[0] - t_ptrY_raw[2])) ;
+
+    if( t_ptrMatrix->Divider == 0 )
+    {
+        ret = LCDIF_NOT_OK ;
+    }
+    else
+    {
+        t_ptrMatrix->An = ((t_ptrX[0] - t_ptrX[2]) * (t_ptrY_raw[1] - t_ptrY_raw[2])) - 
+                        ((t_ptrX[1] - t_ptrX[2]) * (t_ptrY_raw[0] - t_ptrY_raw[2])) ;
+
+        t_ptrMatrix->Bn = ((t_ptrX_raw[0] - t_ptrX_raw[2]) * (t_ptrX[1] - t_ptrX[2])) - 
+                        ((t_ptrX[0] - t_ptrX[2]) * (t_ptrX_raw[1] - t_ptrX_raw[2])) ;
+
+        t_ptrMatrix->Cn = (t_ptrX_raw[2] * t_ptrX[1] - t_ptrX_raw[1] * t_ptrX[2]) * t_ptrY_raw[0] +
+                        (t_ptrX_raw[0] * t_ptrX[2] - t_ptrX_raw[2] * t_ptrX[0]) * t_ptrY_raw[1] +
+                        (t_ptrX_raw[1] * t_ptrX[0] - t_ptrX_raw[0] * t_ptrX[1]) * t_ptrY_raw[2] ;
+
+        t_ptrMatrix->Dn = ((t_ptrY[0] - t_ptrY[2]) * (t_ptrY_raw[1] - t_ptrY_raw[2])) - 
+                        ((t_ptrY[1] - t_ptrY[2]) * (t_ptrY_raw[0] - t_ptrY_raw[2]));
+    
+        t_ptrMatrix->En = ((t_ptrX_raw[0] - t_ptrX_raw[2]) * (t_ptrY[1] - t_ptrY[2])) - 
+                        ((t_ptrY[0] - t_ptrY[2]) * (t_ptrX_raw[1] - t_ptrX_raw[2]));
+
+        t_ptrMatrix->Fn = (t_ptrX_raw[2] * t_ptrY[1] - t_ptrX_raw[1] * t_ptrY[2]) * t_ptrY_raw[0] +
+                        (t_ptrX_raw[0] * t_ptrY[2] - t_ptrX_raw[2] * t_ptrY[0]) * t_ptrY_raw[1] +
+                        (t_ptrX_raw[1] * t_ptrY[0] - t_ptrX_raw[0] * t_ptrY[1]) * t_ptrY_raw[2];
+    }
+    return ret;
+}
+
+LcdIf_ReturnType LcdIf_getDisplayPoint(sint32* t_ptrX, sint32* t_ptrY, 
+    sint32* t_ptrX_raw, sint32* t_ptrY_raw, LcdIf_CalibMatrix* t_ptrMatrix)
+{
+    LcdIf_ReturnType ret = LCDIF_OK;
+    if(t_ptrMatrix->Divider!= 0 )
+    {
+        *t_ptrX = ((t_ptrMatrix->An * (*t_ptrX_raw)) + 
+            (t_ptrMatrix->Bn * (*t_ptrY_raw)) + 
+            t_ptrMatrix->Cn) / t_ptrMatrix->Divider;
+
+        *t_ptrY = ((t_ptrMatrix->Dn * (*t_ptrX_raw)) + 
+            (t_ptrMatrix->En * (*t_ptrY_raw)) + 
+            t_ptrMatrix->Fn) / t_ptrMatrix->Divider;
+    }
+    else
+    {
+        ret = LCDIF_NOT_OK ;
+    }
+
+    return ret;
+
+} 
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCI_A1_VECTOR

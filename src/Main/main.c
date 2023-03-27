@@ -76,6 +76,14 @@ void GPIO_Init(void)
     //Enable IRQ internal resistance as pull-Up resistance
     GPIO_setAsInputPinWithPullUpResistor(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN);
 
+    //Clean screen
+    //Enable IRQ internal resistance as pull-Up resistance
+    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_S1, GPIO_PIN_S1);
+
+    //Calibration routine
+    //Enable IRQ internal resistance as pull-Up resistance
+    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_S2, GPIO_PIN_S2);
+
     //Configure UART pins
     GPIO_setAsPeripheralModuleFunctionInputPin(
         GPIO_PORT_UCA0TXD,
@@ -148,6 +156,19 @@ void UART_Init(void)
 
 int main(void)
 {
+    // Coordinates
+    uint16 u16_x_raw = 0U;
+    uint16 u16_y_raw = 0U;
+
+    sint32 s32_x_raw = 0U;
+    sint32 s32_y_raw = 0U;
+
+    sint32 x = 0U;
+    sint32 y = 0U;
+
+    // Calibration matrix
+    LcdIf_CalibMatrix calibMatrix;
+
     // Driver Inicialization
     CS_Init();
     GPIO_Init();
@@ -156,16 +177,29 @@ int main(void)
     // Test LcdIf
     // Lcd Interface test
     LcdIf_Init();
-    LcdIf_FillScreen(BLACK);
+    LcdIf_FillScreen(WHITE);
     //APP_Test_Features();
     while(1)
     {
-        uint16 x,y;
-        delayMilliseconds(10);
-        if(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN))
+        if(!GPIO_getInputPinValue(GPIO_PORT_S1, GPIO_PIN_S1))
         {
-            (void) LcdIf_ReadXY(&x,&y);
-            (void) LcdIf_DrawPoint(x, y, WHITE);
+            LcdIf_FillScreen(WHITE);
+        }
+        else if(!GPIO_getInputPinValue(GPIO_PORT_S2, GPIO_PIN_S2))
+        {
+            (void) LcdIf_CalibrationRoutine(&calibMatrix);
+        }
+        else if(!GPIO_getInputPinValue(TOUCH_IRQ_PORT, TOUCH_IRQ_PIN))
+        {
+            (void) LcdIf_ReadXY(&u16_x_raw, &u16_y_raw);
+            s32_x_raw = u16_x_raw;
+            s32_y_raw = u16_y_raw;
+            (void) LcdIf_getDisplayPoint(&x, &y, &s32_x_raw,  &s32_y_raw, &calibMatrix);
+            (void) LcdIf_DrawRectangle(x, y, x+2, y+2, BLACK);
+        }
+        else
+        {
+            /* Default */
         }
     }
     return 0;

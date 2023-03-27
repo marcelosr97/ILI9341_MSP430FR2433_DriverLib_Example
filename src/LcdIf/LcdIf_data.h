@@ -154,4 +154,10 @@ const uint8 ascii_table[][CHAR_WIDTH]=
 	0x78,0x46,0x41,0x46,0x78 // ASCII 7f: <-
 };
 
+//Calibration
+const sint32 xSamplesCalib[3] = {36, 120, 204};
+const sint32 ySamplesCalib[3] = {48, 272, 160};
+const sint32 xPerfectSamples[3] = {100, 900, 500};
+const sint32 yPerfectSamples[3] = {100, 500, 900};
+
 #endif /* LCDIF_DATA_H_ */
