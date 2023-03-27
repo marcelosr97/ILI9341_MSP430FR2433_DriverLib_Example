@@ -38,3 +38,6 @@ https://xdec.de/ili9341-tft-display-mit-msp430/
 
 2.8inch SPI Module ILI9341 SKU:MSP2807
 http://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
+
+Implemented routine calibration
+https://www.embedded.com/how-to-calibrate-touch-screens/
